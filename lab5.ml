@@ -240,6 +240,9 @@ let validated_date =
 (*......................................................................
 Exercise 9: Define a function `string_of_date` that returns a string
 representing its date argument. For example,
+
+    # string_of_date {year = 1706; month = 1; day = 17} ;;
+    - : string = "January 17, 1706"
 ......................................................................*)
 
 let string_of_date =
