@@ -42,7 +42,7 @@ for each record field individually.
 
 First, it seems reasonable for a name to be a string, so let's declare
 that complete and move on.
-
+  
 The "favorite" field is more problematic. Although we named it such
 for simplicity, it doesn't convey very well that we intended for this
 field to represent a person's favorite *color*. This could be resolved
@@ -56,7 +56,7 @@ be any of the following: red, orange, yellow, green,
 blue, indigo, or violet.
 ......................................................................*)
 
-type color_label = NotImplemented ;;
+type color_label = Red | Orange | Yellow | Green | Blue | Indigo | Violet ;;
 
 (* This is a good start, but doesn't allow for definition of all of
 the colors that, say, a computer display might be able to
@@ -98,7 +98,9 @@ channels. You'll want to use `Simple` and `RGB` as the value
 constructors in this new variant type.
 ......................................................................*)
 
-type color = NotImplemented ;;
+type color = 
+  | Simple of color_label
+  | RGB of (int * int * int) ;;
 
 (* There is an important assumption about the RGB values that
 determine whether a color is valid or not. The RGB type presupposes an
@@ -145,19 +147,25 @@ an `Invalid_color` exception (defined below) with a useful message.
 
 exception Invalid_color of string ;;
 
-let validated_rgb = 
-  fun _ -> failwith "validated_rgb not implemented" ;;
+let valid ( col: int) : bool =
+  if col < 0 || col > 255 then false else true ;;
 
-(*......................................................................
-Exercise 4: Write a function `make_color` that accepts three integers
+let validated_rgb (c: color) : color = 
+  match c with
+  | Simple(x) -> c
+  | RGB(r, g, b) -> if (not(valid r)) then raise (Invalid_color "red value invalid")
+                  else if (not(valid g)) then raise (Invalid_color "green value invalid")
+                  else if (not(valid b)) then raise (Invalid_color "blue value invalid") 
+                  else c ;;
+(*
 for the channel values and returns a value of the color type. Be sure
 to verify the invariant.
 ......................................................................*)
 
 let make_color = 
-  fun _ -> failwith "make_color not implemented" ;;
+  validated_rgb (RGB (r, g, b));;
 
-(*......................................................................
+(*............ (a : int) (b : int) (c : int) : color..........................................................
 Exercise 5: Write a function `rgb_of_color` that accepts a `color` and
 returns a 3-tuple of ints representing that color. This is trivial for
 `RGB` colors, but not quite so easy for the hard-coded `Simple`
@@ -166,7 +174,17 @@ colors in the table above.
 ......................................................................*)
 
 let rgb_of_color = 
-  fun _ -> failwith "rgb_of_color not implemented" ;;
+  match c with
+  | RGB (r, g, b) -> (r, g, b)
+  | Simple x ->
+     match x with
+     | Red     -> (255,   0,   0)
+     | Orange  -> (255, 165,   0)
+     | Yellow  -> (255, 255,   0)
+     | Green   -> (  0, 255,   0)
+     | Blue    -> (  0,   0, 255)
+     | Indigo  -> ( 75,   0, 130)
+     | Violet  -> (240, 130, 240) ;;
 
 (*======================================================================
 Part 2: Dates as a record type
@@ -192,7 +210,7 @@ be. Then, consider the implications of representing the overall data
 type as a tuple or a record.
 ......................................................................*)
 
-type date = NotImplemented ;;
+type date = { year : int; month : int; day : int } ;;
 
 (* After you've thought it through, go to <http://url.cs51.io/lab5-1> to
 see how we implemented the `date` type. If you picked differently, why 
@@ -235,19 +253,31 @@ valid.
 exception Invalid_date of string ;;
 
 let validated_date = 
-  fun _ -> failwith "validated_date not implemented" ;;
+  if year < 0 then raise (Invalid_date "negative year")
+  else
+    let leap = (year mod 4 = 0 && year mod 100 <> 0)
+               || year mod 400 = 0 in
+    let max_days = 
+      match month with
+      | 1 | 3 | 5 | 7 | 8 | 10 | 12 ->  31
+      | 4 | 6 | 9 | 11              ->  30
+      | 2              -> if leap then  29
+                          else          28
+      | _ -> raise (Invalid_date "bad month") in
+    if day > max_days then raise (Invalid_date "day too large")
+    else if day < 1 then raise (Invalid_date "day too small")
+    else date ;;
    
 (*......................................................................
 Exercise 9: Define a function `string_of_date` that returns a string
 representing its date argument. For example,
-
-    # string_of_date {year = 1706; month = 1; day = 17} ;;
-    - : string = "January 17, 1706"
 ......................................................................*)
 
 let string_of_date =
-  fun _ -> failwith "validated_date not implemented" ;;
-     
+ let month_names = ["January"; "February"; "March"; "April"; 
+                     "May"; "June"; "July"; "August";
+                     "September"; "October"; "November"; "December"] in
+  Printf.sprintf "%s %d, %d" (List.nth month_names (pred month)) day year ;;     
 (*======================================================================
 Part 3: Persons as an algebraic data type
 
@@ -259,7 +289,7 @@ Exercise 10: Define a `person` record type. Use the field names
 `name`, `favorite`, and `birthdate`.
 ......................................................................*)
                  
-type person = NotImplemented ;;
+type person = {name : string; favorite : color; birthdate : date} ;;
 
 (* Just for fun, here's a function to open up a graphics window and
 display a person's information. Try it out! *)
